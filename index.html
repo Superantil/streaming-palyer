@@ -163,31 +163,11 @@
             overflow: hidden;
         }
 
-        .video-js .vjs-big-play-button {
-            background-color: rgba(102, 126, 234, 0.9);
-            border-radius: 50%;
-            border: none;
-            width: 80px;
-            height: 80px;
-            line-height: 80px;
-            font-size: 2rem;
-        }
-
-        .video-js .vjs-control-bar {
-            background: linear-gradient(180deg, transparent, rgba(0,0,0,0.8));
-            height: 4rem;
-        }
-
         .info-panel {
             background: #f8f9fa;
             border-radius: 10px;
             padding: 20px;
             margin-top: 20px;
-        }
-
-        .info-panel h4 {
-            color: #495057;
-            margin-bottom: 10px;
         }
 
         .status-indicator {
@@ -358,22 +338,6 @@
             }
         }
 
-        @media (max-width: 480px) {
-            .header h1 {
-                font-size: 1.5rem;
-            }
-
-            .player-container {
-                padding: 15px;
-            }
-        }
-
-        /* Animaciones de carga */
-        .loading {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-
         .fade-in {
             animation: fadeIn 0.5s ease-in;
         }
@@ -407,15 +371,15 @@
                             <label for="direct">Directo (sin proxy)</label>
                         </div>
                         <div class="proxy-option">
-                            <input type="radio" id="cors1" name="proxy" value="https://cors-anywhere.herokuapp.com/">
+                            <input type="radio" id="cors1" name="proxy" value="cors1">
                             <label for="cors1">Proxy CORS 1</label>
                         </div>
                         <div class="proxy-option">
-                            <input type="radio" id="cors2" name="proxy" value="https://api.allorigins.win/raw?url=">
+                            <input type="radio" id="cors2" name="proxy" value="cors2">
                             <label for="cors2">Proxy CORS 2</label>
                         </div>
                         <div class="proxy-option">
-                            <input type="radio" id="cors3" name="proxy" value="https://thingproxy.freeboard.io/fetch/">
+                            <input type="radio" id="cors3" name="proxy" value="cors3">
                             <label for="cors3">Proxy CORS 3</label>
                         </div>
                     </div>
@@ -437,14 +401,14 @@
 
             <!-- Video Player -->
             <div class="video-wrapper">
-                <video-js
+                <video
                     id="streaming-player"
                     class="video-js vjs-default-skin"
                     controls
                     preload="auto"
                     width="100%"
                     height="500"
-                    data-setup='{"fluid": true, "responsive": true}'
+                    data-setup="{}"
                 >
                     <p class="vjs-no-js">
                         Para ver este video, por favor activa JavaScript y considera actualizar a un 
@@ -452,7 +416,7 @@
                             navegador web que soporte video HTML5
                         </a>.
                     </p>
-                </video-js>
+                </video>
             </div>
 
             <!-- Info Panel -->
@@ -484,5 +448,18 @@
             <!-- CORS Info -->
             <div class="cors-info">
                 <h4>ℹ️ ¿Por qué algunos streams no funcionan?</h4>
-                <p><strong>CORS (Cross-Origin Resource Sharing):</strong> Muchos servidores de streaming bloquean el acceso desde navegadores web por seguridad. Aunque funcionen en VLC, no funcionan en páginas web.</p>
-                <p><strong>Solución:</strong> Usa las opciones de "Proxy CORS" arriba. Estos servicios actúan como
+                <p><strong>CORS (Cross-Origin Resource Sharing):</strong> Muchos servidores de streaming bloquean el acceso desde navegadores web por seguridad.</p>
+                <p><strong>Solución:</strong> Usa las opciones de "Proxy CORS" arriba. Estos servicios actúan como intermediarios para evitar las restricciones.</p>
+            </div>
+
+            <!-- Sample URLs -->
+            <div class="sample-urls">
+                <h4>🔗 URLs de Ejemplo para Pruebas</h4>
+                <p style="margin-bottom: 15px; color: #666; font-size: 0.9rem;">
+                    URLs verificadas que funcionan sin proxy:
+                </p>
+                <div class="sample-url" onclick="loadSampleUrl(this.textContent)">
+                    https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+                </div>
+                <div class="sample-url" onclick="loadSampleUrl(this.textContent)">
+                    https://bitdash-a.akamaihd.net/content/sintel/hls/playlist
