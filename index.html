@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproductor de Streaming Multimedia</title>
+    <title>Reproductor de Streaming Multimedia Avanzado</title>
     
     <!-- Video.js CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.6.1/video-js.css" rel="stylesheet">
@@ -68,6 +68,7 @@
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
+            margin-bottom: 15px;
         }
 
         .url-input {
@@ -106,6 +107,48 @@
 
         .load-btn:active {
             transform: translateY(0);
+        }
+
+        .load-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .cors-options {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .cors-options h4 {
+            color: #0c5460;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .proxy-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .proxy-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .proxy-option input[type="radio"] {
+            margin: 0;
+        }
+
+        .proxy-option label {
+            font-size: 0.9rem;
+            cursor: pointer;
         }
 
         .video-wrapper {
@@ -255,6 +298,34 @@
             border-left: 4px solid #17a2b8;
         }
 
+        .warning-message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .cors-info {
+            background: #fff3cd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .cors-info h4 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .cors-info p {
+            color: #856404;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .container {
@@ -279,6 +350,11 @@
 
             .quality-info {
                 grid-template-columns: 1fr;
+            }
+
+            .proxy-selector {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
 
@@ -312,8 +388,8 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>🎥 Reproductor de Streaming</h1>
-            <p>Soporte para HLS (.m3u8) y preparado para MPEG-DASH</p>
+            <h1>🎥 Reproductor de Streaming Avanzado</h1>
+            <p>Soporte para HLS con Proxy CORS - Compatible con cualquier stream</p>
         </div>
 
         <!-- Player Container -->
@@ -321,13 +397,37 @@
             <!-- URL Input Section -->
             <div class="url-input-section">
                 <h3>📺 Cargar Contenido de Streaming</h3>
+                
+                <!-- CORS Options -->
+                <div class="cors-options">
+                    <h4>🔧 Opciones de Proxy CORS (para streams bloqueados)</h4>
+                    <div class="proxy-selector">
+                        <div class="proxy-option">
+                            <input type="radio" id="direct" name="proxy" value="direct" checked>
+                            <label for="direct">Directo (sin proxy)</label>
+                        </div>
+                        <div class="proxy-option">
+                            <input type="radio" id="cors1" name="proxy" value="https://cors-anywhere.herokuapp.com/">
+                            <label for="cors1">Proxy CORS 1</label>
+                        </div>
+                        <div class="proxy-option">
+                            <input type="radio" id="cors2" name="proxy" value="https://api.allorigins.win/raw?url=">
+                            <label for="cors2">Proxy CORS 2</label>
+                        </div>
+                        <div class="proxy-option">
+                            <input type="radio" id="cors3" name="proxy" value="https://thingproxy.freeboard.io/fetch/">
+                            <label for="cors3">Proxy CORS 3</label>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="input-group">
                     <input 
                         type="url" 
                         id="streamUrl" 
                         class="url-input" 
                         placeholder="Ingresa la URL del archivo .m3u8 o stream HLS..."
-                        value=""
+                        value="https://wo.cma.footballii.ir/hls2/b1_high.m3u8"
                     >
                     <button onclick="loadStream()" class="load-btn" id="loadButton">
                         Cargar Stream
@@ -365,13 +465,13 @@
                 
                 <div class="quality-info" id="qualityInfo" style="display: none;">
                     <div class="quality-item">
-                        <strong>Resolución Actual:</strong> <span id="currentResolution">-</span>
+                        <strong>URL Actual:</strong> <span id="currentUrl">-</span>
+                    </div>
+                    <div class="quality-item">
+                        <strong>Resolución:</strong> <span id="currentResolution">-</span>
                     </div>
                     <div class="quality-item">
                         <strong>Bitrate:</strong> <span id="currentBitrate">-</span>
-                    </div>
-                    <div class="quality-item">
-                        <strong>Codec:</strong> <span id="currentCodec">-</span>
                     </div>
                     <div class="quality-item">
                         <strong>Duración:</strong> <span id="streamDuration">-</span>
@@ -381,20 +481,28 @@
                 <div id="messageContainer"></div>
             </div>
 
+            <!-- CORS Info -->
+            <div class="cors-info">
+                <h4>ℹ️ ¿Por qué algunos streams no funcionan?</h4>
+                <p><strong>CORS (Cross-Origin Resource Sharing):</strong> Muchos servidores de streaming bloquean el acceso desde navegadores web por seguridad. Aunque funcionen en VLC, no funcionan en páginas web.</p>
+                <p><strong>Solución:</strong> Usa las opciones de "Proxy CORS" arriba. Estos servicios actúan como intermediarios para evitar las restricciones.</p>
+                <p><strong>Nota:</strong> Los proxies públicos pueden ser lentos o tener limitaciones. Para uso profesional, considera configurar tu propio proxy.</p>
+            </div>
+
             <!-- Sample URLs -->
             <div class="sample-urls">
-                <h4>🔗 URLs de Ejemplo para Pruebas (Garantizadas)</h4>
+                <h4>🔗 URLs de Ejemplo para Pruebas</h4>
                 <p style="margin-bottom: 15px; color: #666; font-size: 0.9rem;">
-                    Si tu URL no funciona, prueba estas que están confirmadas como activas:
+                    URLs verificadas que funcionan sin proxy:
                 </p>
                 <div class="sample-url" onclick="loadSampleUrl(this.textContent)">
-                    https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8
+                    https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
                 </div>
                 <div class="sample-url" onclick="loadSampleUrl(this.textContent)">
                     https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8
                 </div>
                 <div class="sample-url" onclick="loadSampleUrl(this.textContent)">
-                    https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+                    https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8
                 </div>
                 <div class="sample-url" onclick="loadSampleUrl(this.textContent)">
                     https://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8
@@ -419,6 +527,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializePlayer();
             setupEventListeners();
+            
+            // Mostrar mensaje inicial sobre CORS
+            setTimeout(() => {
+                showMessage('💡 Si un stream no reproduce, prueba activando un Proxy CORS arriba. Muchos streams requieren proxy para funcionar en navegadores.', 'info');
+            }, 2000);
         });
 
         /**
@@ -446,9 +559,19 @@
                             bufferBasedABR: true,
                             
                             // Configuración de segmentos
-                            maxPlaylistRetries: 3,
-                            segmentRequestTimeout: 10000,
-                            playlistRequestTimeout: 5000
+                            maxPlaylistRetries: 5,
+                            segmentRequestTimeout: 30000,
+                            playlistRequestTimeout: 15000,
+                            
+                            // Configuración CORS
+                            withCredentials: false,
+                            xhr: {
+                                beforeRequest: function(options) {
+                                    // Configurar headers para evitar problemas CORS
+                                    options.headers = options.headers || {};
+                                    return options;
+                                }
+                            }
                         }
                     },
 
@@ -493,7 +616,7 @@
             player.on('canplay', function() {
                 updateStatus('Stream listo para reproducir', 'connected');
                 document.getElementById('qualityInfo').style.display = 'block';
-                showMessage('Stream cargado exitosamente', 'success');
+                showMessage('✅ Stream cargado exitosamente', 'success');
             });
 
             // Eventos de reproducción
@@ -528,32 +651,35 @@
                     switch (error.code) {
                         case 1:
                             errorMessage = 'Error de descarga - Reproducción abortada';
-                            troubleshootingTip = 'El stream pudo haber sido interrumpido por el servidor.';
+                            troubleshootingTip = 'El stream pudo haber sido interrumpido.';
                             break;
                         case 2:
                             errorMessage = 'Error de red - No se pudo cargar el contenido';
-                            troubleshootingTip = 'Verifica tu conexión a internet o que la URL sea correcta.';
+                            troubleshootingTip = 'Verifica tu conexión o prueba con un Proxy CORS.';
                             break;
                         case 3:
                             errorMessage = 'Error de decodificación - Formato no soportado';
-                            troubleshootingTip = 'El formato del video no es compatible con tu navegador.';
+                            troubleshootingTip = 'El formato del video no es compatible.';
                             break;
                         case 4:
-                            errorMessage = 'Fuente no soportada - URL inválida o formato incompatible';
-                            troubleshootingTip = 'La URL podría estar offline, ser incorrecta o requerir autenticación.';
+                            errorMessage = 'Fuente no soportada - Posible problema de CORS';
+                            troubleshootingTip = '🔧 PRUEBA ACTIVANDO UN PROXY CORS arriba. Este es el error más común.';
                             break;
                         default:
                             errorMessage = error.message || 'Error de reproducción';
-                            troubleshootingTip = 'Intenta con una URL diferente o verifica que el stream esté disponible.';
+                            troubleshootingTip = 'Intenta con un Proxy CORS o una URL diferente.';
                     }
                 }
                 
-                showMessage(`Error: ${errorMessage}. ${troubleshootingTip}`, 'error');
+                showMessage(`❌ ${errorMessage}. ${troubleshootingTip}`, 'error');
                 
-                // Sugerir URLs de prueba si hay error
-                setTimeout(() => {
-                    showMessage('💡 Tip: Prueba con las URLs de ejemplo que aparecen abajo para verificar que el reproductor funciona correctamente.', 'info');
-                }, 2000);
+                // Sugerir proxy CORS si no está activado
+                const selectedProxy = getSelectedProxy();
+                if (selectedProxy === 'direct') {
+                    setTimeout(() => {
+                        showMessage('💡 TIP: Activa un "Proxy CORS" arriba y vuelve a intentar. La mayoría de streams requieren proxy para funcionar en navegadores.', 'warning');
+                    }, 3000);
+                }
             });
 
             // Eventos de buffering
@@ -581,6 +707,32 @@
             document.getElementById('streamUrl').addEventListener('input', function() {
                 clearMessages();
             });
+        }
+
+        /**
+         * Obtiene el proxy CORS seleccionado
+         */
+        function getSelectedProxy() {
+            const selectedRadio = document.querySelector('input[name="proxy"]:checked');
+            return selectedRadio ? selectedRadio.value : 'direct';
+        }
+
+        /**
+         * Construye la URL final con proxy si es necesario
+         */
+        function buildProxiedUrl(originalUrl) {
+            const proxy = getSelectedProxy();
+            
+            if (proxy === 'direct') {
+                return originalUrl;
+            }
+            
+            // Codificar la URL para algunos proxies
+            if (proxy.includes('allorigins')) {
+                return proxy + encodeURIComponent(originalUrl);
+            }
+            
+            return proxy + originalUrl;
         }
 
         /**
@@ -618,20 +770,33 @@
                     currentStream = null;
                 }
 
+                // Construir URL con proxy si es necesario
+                const finalUrl = buildProxiedUrl(url);
+                const selectedProxy = getSelectedProxy();
+                
+                // Mostrar información sobre el proxy
+                if (selectedProxy !== 'direct') {
+                    showMessage(`🔧 Usando proxy CORS: ${selectedProxy}`, 'info');
+                }
+
+                console.log('URL original:', url);
+                console.log('URL final:', finalUrl);
+
                 // Configurar la nueva fuente
                 const sourceConfig = {
-                    src: url,
-                    type: getSourceType(url)
+                    src: finalUrl,
+                    type: getSourceType(url),
+                    withCredentials: false
                 };
 
                 // Cargar el nuevo stream
                 player.src(sourceConfig);
-                currentStream = url;
+                currentStream = finalUrl;
 
                 // Intentar cargar
                 player.load();
 
-                console.log('Cargando stream:', url);
+                console.log('Cargando stream:', finalUrl);
 
             } catch (error) {
                 console.error('Error al cargar el stream:', error);
@@ -642,7 +807,7 @@
                 setTimeout(() => {
                     loadButton.textContent = 'Cargar Stream';
                     loadButton.disabled = false;
-                }, 2000);
+                }, 3000);
             }
         }
 
@@ -651,6 +816,8 @@
          */
         function loadSampleUrl(url) {
             document.getElementById('streamUrl').value = url;
+            // Para URLs de ejemplo, usar directo (sin proxy)
+            document.getElementById('direct').checked = true;
             loadStream();
         }
 
@@ -709,6 +876,14 @@
             if (!player || !player.tech_) return;
 
             try {
+                // Mostrar URL actual
+                const currentUrlElement = document.getElementById('currentUrl');
+                if (currentStream) {
+                    const displayUrl = currentStream.length > 50 ? 
+                        currentStream.substring(0, 50) + '...' : currentStream;
+                    currentUrlElement.textContent = displayUrl;
+                }
+
                 // Obtener información técnica
                 const tech = player.tech_;
                 const videoWidth = player.videoWidth();
@@ -725,118 +900,4 @@
                 if (duration && isFinite(duration)) {
                     const hours = Math.floor(duration / 3600);
                     const minutes = Math.floor((duration % 3600) / 60);
-                    const seconds = Math.floor(duration % 60);
-                    
-                    let durationText;
-                    if (hours > 0) {
-                        durationText = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                    } else {
-                        durationText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                    }
-                    
-                    document.getElementById('streamDuration').textContent = durationText;
-                } else {
-                    document.getElementById('streamDuration').textContent = 'En vivo';
-                }
-
-                // Información adicional si está disponible
-                if (tech.vhs && tech.vhs.playlists && tech.vhs.playlists.master) {
-                    const master = tech.vhs.playlists.master;
-                    const currentPlaylist = tech.vhs.playlists.media();
-                    
-                    if (currentPlaylist && currentPlaylist.attributes) {
-                        const bandwidth = currentPlaylist.attributes.BANDWIDTH;
-                        if (bandwidth) {
-                            const bitrateMbps = (bandwidth / 1000000).toFixed(2);
-                            document.getElementById('currentBitrate').textContent = 
-                                `${bitrateMbps} Mbps`;
-                        }
-
-                        const codecs = currentPlaylist.attributes.CODECS;
-                        if (codecs) {
-                            document.getElementById('currentCodec').textContent = codecs;
-                        }
-                    }
-                }
-
-            } catch (error) {
-                console.warn('No se pudo obtener información técnica del stream:', error);
-            }
-        }
-
-        /**
-         * Muestra un mensaje al usuario
-         */
-        function showMessage(message, type) {
-            const messageContainer = document.getElementById('messageContainer');
-            const messageDiv = document.createElement('div');
-            
-            let className;
-            switch(type) {
-                case 'error':
-                    className = 'error-message';
-                    break;
-                case 'success':
-                    className = 'success-message';
-                    break;
-                case 'info':
-                    className = 'info-message';
-                    break;
-                default:
-                    className = 'info-message';
-            }
-            
-            messageDiv.className = className;
-            messageDiv.textContent = message;
-            
-            // Limpiar mensajes anteriores
-            messageContainer.innerHTML = '';
-            messageContainer.appendChild(messageDiv);
-            
-            // Auto-ocultar mensajes de éxito e info después de 8 segundos
-            if (type === 'success' || type === 'info') {
-                setTimeout(() => {
-                    if (messageContainer.contains(messageDiv)) {
-                        messageDiv.style.opacity = '0';
-                        setTimeout(() => {
-                            if (messageContainer.contains(messageDiv)) {
-                                messageContainer.removeChild(messageDiv);
-                            }
-                        }, 300);
-                    }
-                }, 8000);
-            }
-        }
-
-        /**
-         * Limpia todos los mensajes mostrados
-         */
-        function clearMessages() {
-            const messageContainer = document.getElementById('messageContainer');
-            messageContainer.innerHTML = '';
-        }
-
-        // Función para limpiar recursos cuando se cierre la página
-        window.addEventListener('beforeunload', function() {
-            if (player) {
-                try {
-                    player.dispose();
-                } catch (error) {
-                    console.warn('Error al limpiar el reproductor:', error);
-                }
-            }
-        });
-
-        // Manejo de errores globales
-        window.addEventListener('error', function(event) {
-            console.error('Error global:', event.error);
-        });
-
-        // Información adicional en consola para desarrolladores
-        console.log('🎥 Reproductor de Streaming Multimedia Inicializado');
-        console.log('📖 Formatos soportados: HLS (.m3u8), MPEG-TS (.ts)');
-        console.log('🔧 Bibliotecas: Video.js + HLS Plugin');
-        console.log('🚀 Funcionalidades: ABR, Responsive Design, Controles avanzados');
-    </script>
-</body>
-</html>
+                    const seconds = Math.floor(
