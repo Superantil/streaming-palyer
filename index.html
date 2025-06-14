@@ -246,6 +246,15 @@
             border-left: 4px solid #28a745;
         }
 
+        .info-message {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #17a2b8;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .container {
@@ -374,7 +383,10 @@
 
             <!-- Sample URLs -->
             <div class="sample-urls">
-                <h4>🔗 URLs de Ejemplo para Pruebas</h4>
+                <h4>🔗 URLs de Ejemplo para Pruebas (Garantizadas)</h4>
+                <p style="margin-bottom: 15px; color: #666; font-size: 0.9rem;">
+                    Si tu URL no funciona, prueba estas que están confirmadas como activas:
+                </p>
                 <div class="sample-url" onclick="loadSampleUrl(this.textContent)">
                     https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8
                 </div>
@@ -382,7 +394,10 @@
                     https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8
                 </div>
                 <div class="sample-url" onclick="loadSampleUrl(this.textContent)">
-                    https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8
+                    https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+                </div>
+                <div class="sample-url" onclick="loadSampleUrl(this.textContent)">
+                    https://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8
                 </div>
             </div>
         </div>
@@ -507,26 +522,38 @@
                 updateStatus('Error de reproducción', 'error');
                 
                 let errorMessage = 'Error desconocido';
+                let troubleshootingTip = '';
+                
                 if (error) {
                     switch (error.code) {
                         case 1:
                             errorMessage = 'Error de descarga - Reproducción abortada';
+                            troubleshootingTip = 'El stream pudo haber sido interrumpido por el servidor.';
                             break;
                         case 2:
                             errorMessage = 'Error de red - No se pudo cargar el contenido';
+                            troubleshootingTip = 'Verifica tu conexión a internet o que la URL sea correcta.';
                             break;
                         case 3:
                             errorMessage = 'Error de decodificación - Formato no soportado';
+                            troubleshootingTip = 'El formato del video no es compatible con tu navegador.';
                             break;
                         case 4:
                             errorMessage = 'Fuente no soportada - URL inválida o formato incompatible';
+                            troubleshootingTip = 'La URL podría estar offline, ser incorrecta o requerir autenticación.';
                             break;
                         default:
                             errorMessage = error.message || 'Error de reproducción';
+                            troubleshootingTip = 'Intenta con una URL diferente o verifica que el stream esté disponible.';
                     }
                 }
                 
-                showMessage('Error: ' + errorMessage, 'error');
+                showMessage(`Error: ${errorMessage}. ${troubleshootingTip}`, 'error');
+                
+                // Sugerir URLs de prueba si hay error
+                setTimeout(() => {
+                    showMessage('💡 Tip: Prueba con las URLs de ejemplo que aparecen abajo para verificar que el reproductor funciona correctamente.', 'info');
+                }, 2000);
             });
 
             // Eventos de buffering
@@ -744,15 +771,30 @@
             const messageContainer = document.getElementById('messageContainer');
             const messageDiv = document.createElement('div');
             
-            messageDiv.className = type === 'error' ? 'error-message' : 'success-message';
+            let className;
+            switch(type) {
+                case 'error':
+                    className = 'error-message';
+                    break;
+                case 'success':
+                    className = 'success-message';
+                    break;
+                case 'info':
+                    className = 'info-message';
+                    break;
+                default:
+                    className = 'info-message';
+            }
+            
+            messageDiv.className = className;
             messageDiv.textContent = message;
             
             // Limpiar mensajes anteriores
             messageContainer.innerHTML = '';
             messageContainer.appendChild(messageDiv);
             
-            // Auto-ocultar mensajes de éxito después de 5 segundos
-            if (type === 'success') {
+            // Auto-ocultar mensajes de éxito e info después de 8 segundos
+            if (type === 'success' || type === 'info') {
                 setTimeout(() => {
                     if (messageContainer.contains(messageDiv)) {
                         messageDiv.style.opacity = '0';
@@ -762,7 +804,7 @@
                             }
                         }, 300);
                     }
-                }, 5000);
+                }, 8000);
             }
         }
 
