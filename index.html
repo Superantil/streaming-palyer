@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproductor de Streaming Multimedia Avanzado</title>
+    <title>Reproductor de Streaming con CORS</title>
     
     <!-- Video.js CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.6.1/video-js.css" rel="stylesheet">
     
-    <!-- CSS Personalizado -->
     <style>
         * {
             margin: 0;
@@ -41,11 +40,6 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
         .player-container {
             background: white;
             border-radius: 15px;
@@ -54,21 +48,11 @@
             margin-bottom: 30px;
         }
 
-        .url-input-section {
-            margin-bottom: 25px;
-        }
-
-        .url-input-section h3 {
-            margin-bottom: 15px;
-            color: #444;
-            font-size: 1.2rem;
-        }
-
         .input-group {
             display: flex;
             gap: 10px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
-            margin-bottom: 15px;
         }
 
         .url-input {
@@ -78,13 +62,6 @@
             border: 2px solid #e1e5e9;
             border-radius: 8px;
             font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .url-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .load-btn {
@@ -96,23 +73,12 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
             min-width: 120px;
         }
 
         .load-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .load-btn:active {
-            transform: translateY(0);
-        }
-
-        .load-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
         }
 
         .cors-options {
@@ -123,15 +89,9 @@
             border-left: 4px solid #17a2b8;
         }
 
-        .cors-options h4 {
-            color: #0c5460;
-            margin-bottom: 10px;
-            font-size: 1rem;
-        }
-
         .proxy-selector {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             flex-wrap: wrap;
             align-items: center;
         }
@@ -142,25 +102,14 @@
             gap: 5px;
         }
 
-        .proxy-option input[type="radio"] {
-            margin: 0;
-        }
-
-        .proxy-option label {
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
         .video-wrapper {
-            position: relative;
             margin-bottom: 20px;
         }
 
         .video-js {
             width: 100%;
-            height: auto;
+            height: 500px;
             border-radius: 10px;
-            overflow: hidden;
         }
 
         .info-panel {
@@ -171,7 +120,7 @@
         }
 
         .status-indicator {
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 8px;
             margin-bottom: 10px;
@@ -184,43 +133,9 @@
             background: #6c757d;
         }
 
-        .status-dot.connected {
-            background: #28a745;
-            box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
-        }
-
-        .status-dot.loading {
-            background: #ffc107;
-            animation: pulse 1.5s infinite;
-        }
-
-        .status-dot.error {
-            background: #dc3545;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        .quality-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .quality-item {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
-
-        .quality-item strong {
-            color: #667eea;
-        }
+        .status-dot.connected { background: #28a745; }
+        .status-dot.loading { background: #ffc107; }
+        .status-dot.error { background: #dc3545; }
 
         .sample-urls {
             background: #e3f2fd;
@@ -229,177 +144,93 @@
             margin-top: 20px;
         }
 
-        .sample-urls h4 {
-            color: #1976d2;
-            margin-bottom: 15px;
-        }
-
         .sample-url {
             background: white;
             padding: 10px 15px;
             border-radius: 5px;
             margin-bottom: 10px;
-            font-family: 'Courier New', monospace;
+            font-family: monospace;
             font-size: 0.9rem;
-            word-break: break-all;
             cursor: pointer;
-            transition: all 0.3s ease;
+            word-break: break-all;
         }
 
         .sample-url:hover {
             background: #f5f5f5;
-            transform: translateX(5px);
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
         }
 
         .error-message {
             background: #f8d7da;
             color: #721c24;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
             border-left: 4px solid #dc3545;
         }
 
         .success-message {
             background: #d4edda;
             color: #155724;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
             border-left: 4px solid #28a745;
         }
 
         .info-message {
             background: #d1ecf1;
             color: #0c5460;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
             border-left: 4px solid #17a2b8;
         }
 
-        .warning-message {
-            background: #fff3cd;
-            color: #856404;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            border-left: 4px solid #ffc107;
-        }
-
-        .cors-info {
-            background: #fff3cd;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            border-left: 4px solid #ffc107;
-        }
-
-        .cors-info h4 {
-            color: #856404;
-            margin-bottom: 15px;
-        }
-
-        .cors-info p {
-            color: #856404;
-            margin-bottom: 10px;
-            line-height: 1.5;
-        }
-
-        /* Responsive Design */
         @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .player-container {
-                padding: 20px;
-            }
-
-            .input-group {
-                flex-direction: column;
-            }
-
-            .url-input {
-                min-width: 100%;
-            }
-
-            .quality-info {
-                grid-template-columns: 1fr;
-            }
-
-            .proxy-selector {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            .input-group { flex-direction: column; }
+            .url-input { min-width: 100%; }
+            .proxy-selector { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="header">
-            <h1>🎥 Reproductor de Streaming Avanzado</h1>
-            <p>Soporte para HLS con Proxy CORS - Compatible con cualquier stream</p>
+            <h1>🎥 Reproductor de Streaming</h1>
+            <p>Con soporte para Proxy CORS</p>
         </div>
 
-        <!-- Player Container -->
-        <div class="player-container fade-in">
-            <!-- URL Input Section -->
-            <div class="url-input-section">
-                <h3>📺 Cargar Contenido de Streaming</h3>
-                
-                <!-- CORS Options -->
-                <div class="cors-options">
-                    <h4>🔧 Opciones de Proxy CORS (para streams bloqueados)</h4>
-                    <div class="proxy-selector">
-                        <div class="proxy-option">
-                            <input type="radio" id="direct" name="proxy" value="direct" checked>
-                            <label for="direct">Directo (sin proxy)</label>
-                        </div>
-                        <div class="proxy-option">
-                            <input type="radio" id="cors1" name="proxy" value="cors1">
-                            <label for="cors1">Proxy CORS 1</label>
-                        </div>
-                        <div class="proxy-option">
-                            <input type="radio" id="cors2" name="proxy" value="cors2">
-                            <label for="cors2">Proxy CORS 2</label>
-                        </div>
-                        <div class="proxy-option">
-                            <input type="radio" id="cors3" name="proxy" value="cors3">
-                            <label for="cors3">Proxy CORS 3</label>
-                        </div>
+        <div class="player-container">
+            <h3>📺 Cargar Stream</h3>
+            
+            <div class="cors-options">
+                <h4>🔧 Opciones de Proxy CORS</h4>
+                <div class="proxy-selector">
+                    <div class="proxy-option">
+                        <input type="radio" id="direct" name="proxy" value="direct" checked>
+                        <label for="direct">Directo</label>
                     </div>
-                </div>
-
-                <div class="input-group">
-                    <input 
-                        type="url" 
-                        id="streamUrl" 
-                        class="url-input" 
-                        placeholder="Ingresa la URL del archivo .m3u8 o stream HLS..."
-                        value="https://wo.cma.footballii.ir/hls2/b1_high.m3u8"
-                    >
-                    <button onclick="loadStream()" class="load-btn" id="loadButton">
-                        Cargar Stream
-                    </button>
+                    <div class="proxy-option">
+                        <input type="radio" id="cors1" name="proxy" value="cors1">
+                        <label for="cors1">Proxy 1</label>
+                    </div>
+                    <div class="proxy-option">
+                        <input type="radio" id="cors2" name="proxy" value="cors2">
+                        <label for="cors2">Proxy 2</label>
+                    </div>
                 </div>
             </div>
 
-            <!-- Video Player -->
+            <div class="input-group">
+                <input 
+                    type="url" 
+                    id="streamUrl" 
+                    class="url-input" 
+                    placeholder="Ingresa la URL del stream..."
+                    value="https://wo.cma.footballii.ir/hls2/b1_high.m3u8"
+                >
+                <button onclick="loadStream()" class="load-btn" id="loadButton">
+                    Cargar Stream
+                </button>
+            </div>
+
             <div class="video-wrapper">
                 <video
                     id="streaming-player"
@@ -408,58 +239,215 @@
                     preload="auto"
                     width="100%"
                     height="500"
-                    data-setup="{}"
                 >
-                    <p class="vjs-no-js">
-                        Para ver este video, por favor activa JavaScript y considera actualizar a un 
-                        <a href="https://videojs.com/html5-video-support/" target="_blank">
-                            navegador web que soporte video HTML5
-                        </a>.
-                    </p>
                 </video>
             </div>
 
-            <!-- Info Panel -->
             <div class="info-panel">
-                <h4>📊 Estado del Reproductor</h4>
+                <h4>📊 Estado</h4>
                 <div class="status-indicator">
                     <div class="status-dot" id="statusDot"></div>
-                    <span id="statusText">Listo - Esperando contenido</span>
+                    <span id="statusText">Listo</span>
                 </div>
-                
-                <div class="quality-info" id="qualityInfo" style="display: none;">
-                    <div class="quality-item">
-                        <strong>URL Actual:</strong> <span id="currentUrl">-</span>
-                    </div>
-                    <div class="quality-item">
-                        <strong>Resolución:</strong> <span id="currentResolution">-</span>
-                    </div>
-                    <div class="quality-item">
-                        <strong>Bitrate:</strong> <span id="currentBitrate">-</span>
-                    </div>
-                    <div class="quality-item">
-                        <strong>Duración:</strong> <span id="streamDuration">-</span>
-                    </div>
-                </div>
-
                 <div id="messageContainer"></div>
             </div>
 
-            <!-- CORS Info -->
-            <div class="cors-info">
-                <h4>ℹ️ ¿Por qué algunos streams no funcionan?</h4>
-                <p><strong>CORS (Cross-Origin Resource Sharing):</strong> Muchos servidores de streaming bloquean el acceso desde navegadores web por seguridad.</p>
-                <p><strong>Solución:</strong> Usa las opciones de "Proxy CORS" arriba. Estos servicios actúan como intermediarios para evitar las restricciones.</p>
-            </div>
-
-            <!-- Sample URLs -->
             <div class="sample-urls">
-                <h4>🔗 URLs de Ejemplo para Pruebas</h4>
-                <p style="margin-bottom: 15px; color: #666; font-size: 0.9rem;">
-                    URLs verificadas que funcionan sin proxy:
-                </p>
+                <h4>🔗 URLs de Prueba</h4>
                 <div class="sample-url" onclick="loadSampleUrl(this.textContent)">
                     https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
                 </div>
                 <div class="sample-url" onclick="loadSampleUrl(this.textContent)">
-                    https://bitdash-a.akamaihd.net/content/sintel/hls/playlist
+                    https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video.js JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.6.1/video.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-hls/5.15.0/videojs-contrib-hls.min.js"></script>
+
+    <script>
+        let player;
+        let currentStream = null;
+
+        // Inicializar cuando la página cargue
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePlayer();
+        });
+
+        function initializePlayer() {
+            try {
+                player = videojs('streaming-player', {
+                    fluid: true,
+                    responsive: true,
+                    html5: {
+                        vhs: {
+                            withCredentials: false,
+                            enableLowInitialPlaylist: true,
+                            smoothQualityChange: true
+                        }
+                    }
+                });
+
+                setupPlayerEvents();
+                updateStatus('Reproductor listo', 'connected');
+                
+            } catch (error) {
+                console.error('Error al inicializar:', error);
+                updateStatus('Error al inicializar', 'error');
+            }
+        }
+
+        function setupPlayerEvents() {
+            player.on('loadstart', function() {
+                updateStatus('Cargando...', 'loading');
+            });
+
+            player.on('canplay', function() {
+                updateStatus('Listo para reproducir', 'connected');
+                showMessage('✅ Stream cargado correctamente', 'success');
+            });
+
+            player.on('error', function() {
+                const error = player.error();
+                updateStatus('Error de reproducción', 'error');
+                
+                let message = 'Error desconocido';
+                if (error) {
+                    switch (error.code) {
+                        case 2:
+                            message = 'Error de red - Prueba con Proxy CORS';
+                            break;
+                        case 4:
+                            message = 'Stream no soportado - Activa Proxy CORS';
+                            break;
+                        default:
+                            message = 'Error: ' + (error.message || 'Problema de reproducción');
+                    }
+                }
+                
+                showMessage('❌ ' + message, 'error');
+                
+                // Sugerir proxy si no está activado
+                const selectedProxy = getSelectedProxy();
+                if (selectedProxy === 'direct') {
+                    setTimeout(() => {
+                        showMessage('💡 TIP: Activa "Proxy 1" o "Proxy 2" arriba y vuelve a intentar', 'info');
+                    }, 2000);
+                }
+            });
+        }
+
+        function getSelectedProxy() {
+            const selected = document.querySelector('input[name="proxy"]:checked');
+            return selected ? selected.value : 'direct';
+        }
+
+        function buildProxiedUrl(originalUrl) {
+            const proxy = getSelectedProxy();
+            
+            switch (proxy) {
+                case 'cors1':
+                    return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(originalUrl);
+                case 'cors2':
+                    return 'https://corsproxy.io/?' + originalUrl;
+                default:
+                    return originalUrl;
+            }
+        }
+
+        function loadStream() {
+            const urlInput = document.getElementById('streamUrl');
+            const url = urlInput.value.trim();
+            const loadButton = document.getElementById('loadButton');
+
+            if (!url) {
+                showMessage('❌ Por favor ingresa una URL', 'error');
+                return;
+            }
+
+            try {
+                loadButton.textContent = 'Cargando...';
+                loadButton.disabled = true;
+                clearMessages();
+
+                // Limpiar stream anterior
+                if (currentStream) {
+                    player.src('');
+                    currentStream = null;
+                }
+
+                // Construir URL con proxy si es necesario
+                const finalUrl = buildProxiedUrl(url);
+                const proxy = getSelectedProxy();
+                
+                if (proxy !== 'direct') {
+                    showMessage('🔄 Usando Proxy CORS...', 'info');
+                }
+
+                // Cargar el stream
+                player.src({
+                    src: finalUrl,
+                    type: 'application/x-mpegURL'
+                });
+
+                currentStream = url;
+                player.load();
+
+                console.log('Cargando:', finalUrl);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('❌ Error al cargar: ' + error.message, 'error');
+            } finally {
+                setTimeout(() => {
+                    loadButton.textContent = 'Cargar Stream';
+                    loadButton.disabled = false;
+                }, 2000);
+            }
+        }
+
+        function loadSampleUrl(url) {
+            document.getElementById('streamUrl').value = url;
+            loadStream();
+        }
+
+        function updateStatus(message, status) {
+            document.getElementById('statusText').textContent = message;
+            const dot = document.getElementById('statusDot');
+            dot.className = 'status-dot ' + (status || '');
+        }
+
+        function showMessage(message, type) {
+            const container = document.getElementById('messageContainer');
+            const div = document.createElement('div');
+            div.className = 'message ' + (type || 'info') + '-message';
+            div.textContent = message;
+            
+            container.innerHTML = '';
+            container.appendChild(div);
+            
+            if (type === 'success' || type === 'info') {
+                setTimeout(() => {
+                    if (container.contains(div)) {
+                        container.removeChild(div);
+                    }
+                }, 5000);
+            }
+        }
+
+        function clearMessages() {
+            document.getElementById('messageContainer').innerHTML = '';
+        }
+
+        // Limpiar al cerrar
+        window.addEventListener('beforeunload', function() {
+            if (player) {
+                player.dispose();
+            }
+        });
+    </script>
+</body>
+</html>
