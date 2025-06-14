@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor de Streaming Multimedia</title>
+    
+    <!-- Video.js CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.6.1/video-js.css" rel="stylesheet">
+    
+    <!-- CSS Personalizado -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .player-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .url-input-section {
+            margin-bottom: 25px;
+        }
+
+        .url-input-section h3 {
+            margin-bottom: 15px;
+            color: #444;
+            font-size: 1.2rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .url-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .load-btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .load-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .load-btn:active {
+            transform: translateY(0);
+        }
+
+        .video-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .video-js {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .video-js .vjs-big-play-button {
+            background-color: rgba(102, 126, 234, 0.9);
+            border-radius: 50%;
+            border: none;
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            font-size: 2rem;
+        }
+
+        .video-js .vjs-control-bar {
+            background: linear-gradient(180deg, transparent, rgba(0,0,0,0.8));
+            height: 4rem;
+        }
+
+        .info-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .info-panel h4 {
+            color: #495057;
+            margin-bottom: 10px;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #6c757d;
+        }
+
+        .status-dot.connected {
+            background: #28a745;
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+        }
+
+        .status-dot.loading {
+            background: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-dot.error {
+            background: #dc3545;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .quality-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .quality-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .quality-item strong {
+            color: #667eea;
+        }
+
+        .sample-urls {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .sample-urls h4 {
+            color: #1976d2;
+            margin-bottom: 15px;
+        }
+
+        .sample-url {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            word-break: break-all;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sample-url:hover {
+            background: #f5f5f5;
+            transform: translateX(5px);
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #dc3545;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #28a745;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .player-container {
+                padding: 20px;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .url-input {
+                min-width: 100%;
+            }
+
+            .quality-info {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .player-container {
+                padding: 15px;
+            }
+        }
+
+        /* Animaciones de carga */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎥 Reproductor de Streaming</h1>
+            <p>Soporte para HLS (.m3u8) y preparado para MPEG-DASH</p>
+        </div>
+
+        <!-- Player Container -->
+        <div class="player-container fade-in">
+            <!-- URL Input Section -->
+            <div class="url-input-section">
+                <h3>📺 Cargar Contenido de Streaming</h3>
+                <div class="input-group">
+                    <input 
+                        type="url" 
+                        id="streamUrl" 
+                        class="url-input" 
+                        placeholder="Ingresa la URL del archivo .m3u8 o stream HLS..."
+                        value=""
+                    >
+                    <button onclick="loadStream()" class="load-btn" id="loadButton">
+                        Cargar Stream
+                    </button>
+                </div>
+            </div>
+
+            <!-- Video Player -->
+            <div class="video-wrapper">
+                <video-js
+                    id="streaming-player"
+                    class="video-js vjs-default-skin"
+                    controls
+                    preload="auto"
+                    width="100%"
+                    height="500"
+                    data-setup='{"fluid": true, "responsive": true}'
+                >
+                    <p class="vjs-no-js">
+                        Para ver este video, por favor activa JavaScript y considera actualizar a un 
+                        <a href="https://videojs.com/html5-video-support/" target="_blank">
+                            navegador web que soporte video HTML5
+                        </a>.
+                    </p>
+                </video-js>
+            </div>
+
+            <!-- Info Panel -->
+            <div class="info-panel">
+                <h4>📊 Estado del Reproductor</h4>
+                <div class="status-indicator">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Listo - Esperando contenido</span>
+                </div>
+                
+                <div class="quality-info" id="qualityInfo" style="display: none;">
+                    <div class="quality-item">
+                        <strong>Resolución Actual:</strong> <span id="currentResolution">-</span>
+                    </div>
+                    <div class="quality-item">
+                        <strong>Bitrate:</strong> <span id="currentBitrate">-</span>
+                    </div>
+                    <div class="quality-item">
+                        <strong>Codec:</strong> <span id="currentCodec">-</span>
+                    </div>
+                    <div class="quality-item">
+                        <strong>Duración:</strong> <span id="streamDuration">-</span>
+                    </div>
+                </div>
+
+                <div id="messageContainer"></div>
+            </div>
+
+            <!-- Sample URLs -->
+            <div class="sample-urls">
+                <h4>🔗 URLs de Ejemplo para Pruebas</h4>
+                <div class="sample-url" onclick="loadSampleUrl(this.textContent)">
+                    https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8
+                </div>
+                <div class="sample-url" onclick="loadSampleUrl(this.textContent)">
+                    https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8
+                </div>
+                <div class="sample-url" onclick="loadSampleUrl(this.textContent)">
+                    https://cph-p2p-msl.akamaized.net/hls/live/2000341/test/master.m3u8
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video.js JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/video.js/8.6.1/video.min.js"></script>
+    
+    <!-- Video.js HLS Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-hls/5.15.0/videojs-contrib-hls.min.js"></script>
+
+    <!-- JavaScript Principal -->
+    <script>
+        // Variables globales
+        let player;
+        let currentStream = null;
+
+        // Inicializar el reproductor cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePlayer();
+            setupEventListeners();
+        });
+
+        /**
+         * Inicializa el reproductor Video.js con configuraciones optimizadas
+         */
+        function initializePlayer() {
+            try {
+                player = videojs('streaming-player', {
+                    // Configuración del reproductor
+                    fluid: true,
+                    responsive: true,
+                    playbackRates: [0.5, 1, 1.25, 1.5, 2],
+                    
+                    // Configuración HLS
+                    html5: {
+                        vhs: {
+                            // Habilitar adaptive bitrate
+                            enableLowInitialPlaylist: true,
+                            smoothQualityChange: true,
+                            useBandwidthFromLocalStorage: true,
+                            useDevicePixelRatio: true,
+                            
+                            // Configuración de buffer
+                            bufferSafetyFactor: 0.9,
+                            bufferBasedABR: true,
+                            
+                            // Configuración de segmentos
+                            maxPlaylistRetries: 3,
+                            segmentRequestTimeout: 10000,
+                            playlistRequestTimeout: 5000
+                        }
+                    },
+
+                    // Teclas de acceso rápido
+                    userActions: {
+                        hotkeys: true
+                    }
+                });
+
+                // Configurar eventos del reproductor
+                setupPlayerEvents();
+                
+                updateStatus('Reproductor inicializado correctamente', 'connected');
+                
+            } catch (error) {
+                console.error('Error al inicializar el reproductor:', error);
+                updateStatus('Error al inicializar el reproductor', 'error');
+                showMessage('Error al inicializar el reproductor: ' + error.message, 'error');
+            }
+        }
+
+        /**
+         * Configura todos los eventos del reproductor
+         */
+        function setupPlayerEvents() {
+            // Evento cuando el reproductor está listo
+            player.ready(function() {
+                console.log('Reproductor listo');
+            });
+
+            // Eventos de carga
+            player.on('loadstart', function() {
+                updateStatus('Iniciando carga...', 'loading');
+                document.getElementById('qualityInfo').style.display = 'none';
+            });
+
+            player.on('loadedmetadata', function() {
+                updateStatus('Metadatos cargados', 'loading');
+                updateStreamInfo();
+            });
+
+            player.on('canplay', function() {
+                updateStatus('Stream listo para reproducir', 'connected');
+                document.getElementById('qualityInfo').style.display = 'block';
+                showMessage('Stream cargado exitosamente', 'success');
+            });
+
+            // Eventos de reproducción
+            player.on('play', function() {
+                updateStatus('Reproduciendo...', 'connected');
+            });
+
+            player.on('pause', function() {
+                updateStatus('Pausado', 'connected');
+            });
+
+            player.on('ended', function() {
+                updateStatus('Reproducción finalizada', 'connected');
+            });
+
+            // Eventos de calidad adaptativa
+            player.on('qualitychange', function() {
+                updateStreamInfo();
+                console.log('Calidad de video cambió');
+            });
+
+            // Eventos de error
+            player.on('error', function() {
+                const error = player.error();
+                console.error('Error del reproductor:', error);
+                updateStatus('Error de reproducción', 'error');
+                
+                let errorMessage = 'Error desconocido';
+                if (error) {
+                    switch (error.code) {
+                        case 1:
+                            errorMessage = 'Error de descarga - Reproducción abortada';
+                            break;
+                        case 2:
+                            errorMessage = 'Error de red - No se pudo cargar el contenido';
+                            break;
+                        case 3:
+                            errorMessage = 'Error de decodificación - Formato no soportado';
+                            break;
+                        case 4:
+                            errorMessage = 'Fuente no soportada - URL inválida o formato incompatible';
+                            break;
+                        default:
+                            errorMessage = error.message || 'Error de reproducción';
+                    }
+                }
+                
+                showMessage('Error: ' + errorMessage, 'error');
+            });
+
+            // Eventos de buffering
+            player.on('waiting', function() {
+                updateStatus('Buffering...', 'loading');
+            });
+
+            player.on('playing', function() {
+                updateStatus('Reproduciendo...', 'connected');
+            });
+        }
+
+        /**
+         * Configura los listeners de eventos de la interfaz
+         */
+        function setupEventListeners() {
+            // Enter key en el input de URL
+            document.getElementById('streamUrl').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loadStream();
+                }
+            });
+
+            // Limpiar mensajes cuando se empiece a escribir
+            document.getElementById('streamUrl').addEventListener('input', function() {
+                clearMessages();
+            });
+        }
+
+        /**
+         * Carga un stream desde la URL proporcionada
+         */
+        function loadStream() {
+            const urlInput = document.getElementById('streamUrl');
+            const url = urlInput.value.trim();
+            const loadButton = document.getElementById('loadButton');
+
+            // Validar URL
+            if (!url) {
+                showMessage('Por favor, ingresa una URL válida', 'error');
+                urlInput.focus();
+                return;
+            }
+
+            // Validar formato básico de URL
+            if (!isValidUrl(url)) {
+                showMessage('La URL ingresada no tiene un formato válido', 'error');
+                urlInput.focus();
+                return;
+            }
+
+            try {
+                // Mostrar estado de carga
+                loadButton.textContent = 'Cargando...';
+                loadButton.disabled = true;
+                updateStatus('Cargando stream...', 'loading');
+                clearMessages();
+
+                // Si hay un stream anterior, limpiarlo
+                if (currentStream) {
+                    player.src('');
+                    currentStream = null;
+                }
+
+                // Configurar la nueva fuente
+                const sourceConfig = {
+                    src: url,
+                    type: getSourceType(url)
+                };
+
+                // Cargar el nuevo stream
+                player.src(sourceConfig);
+                currentStream = url;
+
+                // Intentar cargar
+                player.load();
+
+                console.log('Cargando stream:', url);
+
+            } catch (error) {
+                console.error('Error al cargar el stream:', error);
+                updateStatus('Error al cargar el stream', 'error');
+                showMessage('Error al cargar el stream: ' + error.message, 'error');
+            } finally {
+                // Restaurar botón después de un delay
+                setTimeout(() => {
+                    loadButton.textContent = 'Cargar Stream';
+                    loadButton.disabled = false;
+                }, 2000);
+            }
+        }
+
+        /**
+         * Carga una URL de ejemplo
+         */
+        function loadSampleUrl(url) {
+            document.getElementById('streamUrl').value = url;
+            loadStream();
+        }
+
+        /**
+         * Determina el tipo de fuente basado en la URL
+         */
+        function getSourceType(url) {
+            const urlLower = url.toLowerCase();
+            
+            if (urlLower.includes('.m3u8')) {
+                return 'application/x-mpegURL';
+            } else if (urlLower.includes('.mpd')) {
+                return 'application/dash+xml';
+            } else if (urlLower.includes('.ts')) {
+                return 'video/MP2T';
+            } else {
+                // Tipo genérico para HLS
+                return 'application/x-mpegURL';
+            }
+        }
+
+        /**
+         * Valida si una cadena es una URL válida
+         */
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        /**
+         * Actualiza el estado visual del reproductor
+         */
+        function updateStatus(message, status) {
+            const statusText = document.getElementById('statusText');
+            const statusDot = document.getElementById('statusDot');
+            
+            statusText.textContent = message;
+            
+            // Remover todas las clases de estado
+            statusDot.classList.remove('connected', 'loading', 'error');
+            
+            // Agregar la clase correspondiente
+            if (status) {
+                statusDot.classList.add(status);
+            }
+        }
+
+        /**
+         * Actualiza la información del stream actual
+         */
+        function updateStreamInfo() {
+            if (!player || !player.tech_) return;
+
+            try {
+                // Obtener información técnica
+                const tech = player.tech_;
+                const videoWidth = player.videoWidth();
+                const videoHeight = player.videoHeight();
+                const duration = player.duration();
+
+                // Actualizar resolución
+                if (videoWidth && videoHeight) {
+                    document.getElementById('currentResolution').textContent = 
+                        `${videoWidth}x${videoHeight}`;
+                }
+
+                // Actualizar duración
+                if (duration && isFinite(duration)) {
+                    const hours = Math.floor(duration / 3600);
+                    const minutes = Math.floor((duration % 3600) / 60);
+                    const seconds = Math.floor(duration % 60);
+                    
+                    let durationText;
+                    if (hours > 0) {
+                        durationText = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    } else {
+                        durationText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                    }
+                    
+                    document.getElementById('streamDuration').textContent = durationText;
+                } else {
+                    document.getElementById('streamDuration').textContent = 'En vivo';
+                }
+
+                // Información adicional si está disponible
+                if (tech.vhs && tech.vhs.playlists && tech.vhs.playlists.master) {
+                    const master = tech.vhs.playlists.master;
+                    const currentPlaylist = tech.vhs.playlists.media();
+                    
+                    if (currentPlaylist && currentPlaylist.attributes) {
+                        const bandwidth = currentPlaylist.attributes.BANDWIDTH;
+                        if (bandwidth) {
+                            const bitrateMbps = (bandwidth / 1000000).toFixed(2);
+                            document.getElementById('currentBitrate').textContent = 
+                                `${bitrateMbps} Mbps`;
+                        }
+
+                        const codecs = currentPlaylist.attributes.CODECS;
+                        if (codecs) {
+                            document.getElementById('currentCodec').textContent = codecs;
+                        }
+                    }
+                }
+
+            } catch (error) {
+                console.warn('No se pudo obtener información técnica del stream:', error);
+            }
+        }
+
+        /**
+         * Muestra un mensaje al usuario
+         */
+        function showMessage(message, type) {
+            const messageContainer = document.getElementById('messageContainer');
+            const messageDiv = document.createElement('div');
+            
+            messageDiv.className = type === 'error' ? 'error-message' : 'success-message';
+            messageDiv.textContent = message;
+            
+            // Limpiar mensajes anteriores
+            messageContainer.innerHTML = '';
+            messageContainer.appendChild(messageDiv);
+            
+            // Auto-ocultar mensajes de éxito después de 5 segundos
+            if (type === 'success') {
+                setTimeout(() => {
+                    if (messageContainer.contains(messageDiv)) {
+                        messageDiv.style.opacity = '0';
+                        setTimeout(() => {
+                            if (messageContainer.contains(messageDiv)) {
+                                messageContainer.removeChild(messageDiv);
+                            }
+                        }, 300);
+                    }
+                }, 5000);
+            }
+        }
+
+        /**
+         * Limpia todos los mensajes mostrados
+         */
+        function clearMessages() {
+            const messageContainer = document.getElementById('messageContainer');
+            messageContainer.innerHTML = '';
+        }
+
+        // Función para limpiar recursos cuando se cierre la página
+        window.addEventListener('beforeunload', function() {
+            if (player) {
+                try {
+                    player.dispose();
+                } catch (error) {
+                    console.warn('Error al limpiar el reproductor:', error);
+                }
+            }
+        });
+
+        // Manejo de errores globales
+        window.addEventListener('error', function(event) {
+            console.error('Error global:', event.error);
+        });
+
+        // Información adicional en consola para desarrolladores
+        console.log('🎥 Reproductor de Streaming Multimedia Inicializado');
+        console.log('📖 Formatos soportados: HLS (.m3u8), MPEG-TS (.ts)');
+        console.log('🔧 Bibliotecas: Video.js + HLS Plugin');
+        console.log('🚀 Funcionalidades: ABR, Responsive Design, Controles avanzados');
+    </script>
+</body>
+</html>
